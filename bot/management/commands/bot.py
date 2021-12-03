@@ -10,7 +10,7 @@ from telegram.ext import Updater
 from telegram import Update
 from telegram.utils.request import Request
 
-from bot.models import Message, Profile
+from bot.models import Profile
 
 
 def log_errors(f):
