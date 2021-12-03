@@ -1,7 +1,6 @@
 from django.db import models
 
 
-
 '''
 Профили пользователей в телеге
 '''

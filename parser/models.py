@@ -18,7 +18,6 @@ class TaskExecutor(models.Model):
         verbose_name_plural = 'Исполнители'
 
 
-
 '''
 Заявки
 '''
