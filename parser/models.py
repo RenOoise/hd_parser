@@ -10,6 +10,14 @@ class TaskExecutor(models.Model):
         verbose_name='Полное имя исполнителя',
     )
 
+    def __str__(self):
+        return f'{self.fullname}'
+
+    class Meta:
+        verbose_name = 'Исполнитель'
+        verbose_name_plural = 'Исполнители'
+
+
 
 '''
 Заявки
@@ -38,3 +46,10 @@ class Task(models.Model):
     task_changed = models.TextField(
         verbose_name='Изменена'
     )
+
+    def __str__(self):
+        return f'Заявка {self.external_id} от {self.task_creator_name} для {self.task_executor}'
+
+    class Meta:
+        verbose_name = 'Заявка'
+        verbose_name_plural = 'Заявки'
