@@ -10,16 +10,11 @@ from parser.models import Task, TaskExecutor
 
 load_dotenv()
 
-URL = os.getenv('URL')
-TASK_URL = os.getenv('TASK_URL')
-LOGIN = os.getenv('LOGIN')
-PASSWORD = os.getenv('PASSWORD')
-
 
 def parse():
     s = Session()
-    s.post(URL, {"login": LOGIN, "password": PASSWORD})
-    page_signed_in = s.get(TASK_URL)
+    s.post(os.getenv('URL'), {"login": os.getenv('LOGIN'), "password": os.getenv('PASSWORD')})
+    page_signed_in = s.get(os.getenv('TASK_URL'))
 
     soup = BeautifulSoup(page_signed_in.text, features="html.parser")
 
