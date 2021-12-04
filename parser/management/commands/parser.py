@@ -28,18 +28,19 @@ def parse():
 
     for task in data:
         if len(task) != 0:
-
             print(task)
             if not Task.objects.filter(external_id=int(task[0])).exists():
                 new_tasks = Task(
                     external_id=int(task[0]),
                     task_name=task[1],
                     # task_status=0 # пока не парсится
-                    task_creator_name=task[2],
+                    task_creator_name=task[2].split(", "),
                     task_executor=task[3],
                     task_changed=task[4],
                 )
                 new_tasks.save()
+            else:
+                print("Already in Database")
         else:
             print('found empty list')
 
@@ -49,4 +50,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
             parse()
+
 
