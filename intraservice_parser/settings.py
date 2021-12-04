@@ -33,6 +33,9 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# ключ для подписки на бота
+SUBSCRIPTION_KEY = os.getenv('SUBSCRIPTION_KEY')
+
 ALLOWED_HOSTS = []
 
 
