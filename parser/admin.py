@@ -16,7 +16,6 @@ class TaskAdmin(admin.ModelAdmin):
                     'external_id',
                     'task_name',
                     'task_creator_name',
-                    'task_executor',
                     'task_changed',
                     )
 

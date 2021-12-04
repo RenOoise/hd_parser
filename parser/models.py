@@ -41,12 +41,6 @@ class Task(models.Model):
         verbose_name='Заявитель'
     )
 
-    task_executor = models.ForeignKey(
-        to='TaskExecutor',
-        verbose_name='Исполнитель заявки',
-        on_delete=models.PROTECT,
-    )
-
     task_category = models.TextField(
         verbose_name='Категория заявки',
         default='Не указан'
@@ -62,7 +56,7 @@ class Task(models.Model):
     )
 
     def __str__(self):
-        return f'Заявка {self.external_id} от {self.task_creator_name} для {self.task_executor}'
+        return f'Заявка {self.external_id} от {self.task_creator_name}'
 
     class Meta:
         verbose_name = 'Заявка'
@@ -75,6 +69,7 @@ class ExecutorsAndTasksId(models.Model):
         verbose_name='Заявка',
         on_delete=models.PROTECT,
     )
+
     executor_id = models.ForeignKey(
         to='TaskExecutor',
         verbose_name='Исполнитель',
@@ -87,3 +82,4 @@ class ExecutorsAndTasksId(models.Model):
     class Meta:
         verbose_name = 'Заявка и её исполнитель'
         verbose_name_plural = 'Заявки и их исполнители'
+
