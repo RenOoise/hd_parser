@@ -41,10 +41,13 @@ class Task(models.Model):
         verbose_name='Заявитель'
     )
 
-    task_executor = models.ForeignKey(
-        to='TaskExecutor',
+    task_executor = models.TextField(
         verbose_name='Исполнитель заявки',
-        on_delete=models.PROTECT,
+    )
+
+    task_category = models.TextField(
+        verbose_name='Категория заявки',
+        default='Не указан'
     )
 
     task_changed = models.TextField(
