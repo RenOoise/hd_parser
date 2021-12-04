@@ -41,8 +41,10 @@ class Task(models.Model):
         verbose_name='Заявитель'
     )
 
-    task_executor = models.TextField(
+    task_executor = models.ForeignKey(
+        to='TaskExecutor',
         verbose_name='Исполнитель заявки',
+        on_delete=models.PROTECT,
     )
 
     task_category = models.TextField(
@@ -65,3 +67,23 @@ class Task(models.Model):
     class Meta:
         verbose_name = 'Заявка'
         verbose_name_plural = 'Заявки'
+
+
+class ExecutorsAndTasksId(models.Model):
+    task_id = models.ForeignKey(
+        to='Task',
+        verbose_name='Заявка',
+        on_delete=models.PROTECT,
+    )
+    executor_id = models.ForeignKey(
+        to='TaskExecutor',
+        verbose_name='Исполнитель',
+        on_delete=models.PROTECT,
+    )
+
+    def __str__(self):
+        return f'Исполнитель заявки {self.task_id} : {self.executor_id}'
+
+    class Meta:
+        verbose_name = 'Заявка и её исполнитель'
+        verbose_name_plural = 'Заявки и их исполнители'
