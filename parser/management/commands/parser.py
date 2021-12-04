@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 from requests import Session
 
-from parser.models import Task, TaskExecutor
+from parser.models import Task, TaskExecutor, ExecutorsAndTasksId
 
 load_dotenv()
 
@@ -30,25 +30,41 @@ def parse():
         if len(task) != 0:
             print(task)
             if not Task.objects.filter(external_id=int(task[0])).exists():
+                # добавляем заявку в таблицу заявок
                 new_tasks = Task(
                     external_id=int(task[0]),
                     task_name=task[1],
                     # task_status=0 # пока не парсится
-                    task_creator_name=task[2].split(", "),
-                    task_executor=task[3],
+                    task_creator_name=task[2],
                     task_changed=task[4],
                 )
                 new_tasks.save()
+                # проходимся итерацией по исполнителям из полученной строки
+                for executor in task[3].split(", "):
+                    if not TaskExecutor.objects.filter(fullname=executor).exists():
+                        # добавляем каждого отдельного исполнителя в таблицу исполнителей
+                        add_executor = TaskExecutor(
+                            fullname=executor
+                        )
+                        add_executor.save()
+                    else:
+                        print('DEBUG: Исполнитель уже существует в базе')
+
+                    # связываем каждую заявку с исполнителями
+                    executors_and_tasks_id = ExecutorsAndTasksId(
+                        task_id=Task.objects.get(external_id=task[0]),
+                        executor_id=TaskExecutor.objects.get(fullname=executor)
+                    )
+                    executors_and_tasks_id.save()
+
             else:
-                print("Already in Database")
+                print("DEBUG: Заявка уже существует в базе")
         else:
-            print('found empty list')
+            print('DEBUG: found empty list')
 
 
 class Command(BaseCommand):
     help = 'Приложение парсинга страниц ХелпДеска'
 
     def handle(self, *args, **options):
-            parse()
-
-
+        parse()
