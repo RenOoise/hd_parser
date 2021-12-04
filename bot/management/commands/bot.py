@@ -13,7 +13,7 @@ from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Handler
-from bot.models import Profile
+from bot.models import Profile, Message
 
 
 def log_errors(f):
@@ -120,20 +120,31 @@ def do_help(update: Update, context: CallbackContext):
 @log_errors
 def do_register(update: Update, context: CallbackContext):
     chat_id = update.message.chat_id
+    text = update.message.text
+
+    p, _ = Profile.objects.get_or_create(
+        external_id=chat_id,
+        defaults={
+            'name': update.message.from_user.username
+        }
+    )
+    m = Message(
+        profile=p,
+        text=text,
+    )
+
+    m.save()
+
     if update.message.from_user.username is None:
         username = 'NoName'
     else:
         username = update.message.from_user.username
 
     if Profile.objects.filter(external_id=chat_id).exists():
-        print('В базе есть')
         if Profile.objects.get().is_registered:
-            print('Зареган')
             update.message.reply_text('Команда не распознана.\n'
                                       'Если хочешь пообщаться, то это не ко мне.')
         else:
-            print(update.message.text)
-            print(settings.SUBSCRIPTION_KEY)
             if update.message.text == settings.SUBSCRIPTION_KEY:
                 profile_register = Profile.objects.get(external_id=chat_id)
                 profile_register.is_registered = True
