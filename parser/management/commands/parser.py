@@ -27,12 +27,21 @@ def parse():
         data.append([ele for ele in cols if ele])  # Get rid of empty values
 
     for task in data:
-        empty = []
         if len(task) != 0:
-            if Task.objects.filter(external_id=int(task[0])).exists():
-                print(task[0])
-            else:
-                print(task[0], task[1])
+
+            print(task)
+            if not Task.objects.filter(external_id=int(task[0])).exists():
+                new_tasks = Task(
+                    external_id=int(task[0]),
+                    task_name=task[1],
+                    # task_status=0 # пока не парсится
+                    task_creator_name=task[2],
+                    task_executor=task[3],
+                    task_changed=task[4],
+                )
+                new_tasks.save()
+        else:
+            print('found empty list')
 
 
 class Command(BaseCommand):
