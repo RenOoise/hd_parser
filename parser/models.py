@@ -28,22 +28,32 @@ class Task(models.Model):
         verbose_name='ID заявки',
         unique=True,
     )
+
     task_name = models.TextField(
         verbose_name='Название заявки'
     )
+
     task_status = models.TextField(
         verbose_name='Статус заявки'
     )
+
     task_creator_name = models.TextField(
         verbose_name='Заявитель'
     )
+
     task_executor = models.ForeignKey(
         to='TaskExecutor',
         verbose_name='Исполнитель заявки',
         on_delete=models.PROTECT,
     )
+
     task_changed = models.TextField(
-        verbose_name='Изменена'
+        verbose_name='Изменена',
+    )
+
+    task_parse_time = models.DateTimeField(
+        verbose_name='Время парсинга',
+        auto_now=True,
     )
 
     def __str__(self):
