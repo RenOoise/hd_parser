@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('parser', '0005_remove_task_task_executor'),
         ('bot', '0003_profile_is_registered'),
@@ -21,8 +20,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('is_sent', models.BooleanField(default=False, verbose_name='Отправлено в тг')),
-                ('profile_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='bot.profile', verbose_name='Профиль')),
-                ('task_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.task', verbose_name='Заявка')),
+                ('profile_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='bot.profile',
+                                                 verbose_name='Профиль')),
+                ('task_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.task',
+                                              verbose_name='Заявка')),
             ],
             options={
                 'verbose_name': 'Отправленная заявка',

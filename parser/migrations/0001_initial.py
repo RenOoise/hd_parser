@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -32,7 +31,9 @@ class Migration(migrations.Migration):
                 ('task_status', models.TextField(verbose_name='Статус заявки')),
                 ('task_creator_name', models.TextField(verbose_name='Заявитель')),
                 ('task_changed', models.TextField(verbose_name='Изменена')),
-                ('task_executor', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor', verbose_name='Исполнитель заявки')),
+                ('task_executor',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor',
+                                   verbose_name='Исполнитель заявки')),
             ],
             options={
                 'verbose_name': 'Заявка',

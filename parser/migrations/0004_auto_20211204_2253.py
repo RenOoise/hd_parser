@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('parser', '0003_auto_20211204_1557'),
     ]
@@ -14,14 +13,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='task',
             name='task_executor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor', verbose_name='Исполнитель заявки'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor',
+                                    verbose_name='Исполнитель заявки'),
         ),
         migrations.CreateModel(
             name='ExecutorsAndTasksId',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('executor_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor', verbose_name='Исполнитель')),
-                ('task_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.task', verbose_name='Заявка')),
+                ('executor_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor',
+                                                  verbose_name='Исполнитель')),
+                ('task_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.task',
+                                              verbose_name='Заявка')),
             ],
             options={
                 'verbose_name': 'Заявка и её исполнитель',

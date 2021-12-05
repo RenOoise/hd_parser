@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('parser', '0005_remove_task_task_executor'),
         ('bot', '0001_initial'),
@@ -16,8 +15,10 @@ class Migration(migrations.Migration):
             name='UserSubscriptions',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('executor_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor', verbose_name='Исполнитель')),
-                ('profile_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='bot.profile', verbose_name='Профиль тг')),
+                ('executor_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='parser.taskexecutor',
+                                                  verbose_name='Исполнитель')),
+                ('profile_id', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='bot.profile',
+                                                 verbose_name='Профиль тг')),
             ],
             options={
                 'verbose_name': 'Подписка',

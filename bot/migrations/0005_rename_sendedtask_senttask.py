@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('parser', '0005_remove_task_task_executor'),
         ('bot', '0004_auto_20211205_0026'),

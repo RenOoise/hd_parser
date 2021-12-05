@@ -18,7 +18,6 @@ import logging
 from telegram import Bot
 from telegram.utils.request import Request
 
-
 logger = logging.getLogger(__name__)
 load_dotenv()
 request = Request(

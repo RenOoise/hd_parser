@@ -16,7 +16,6 @@ from telegram.ext import Handler
 from bot.models import Profile, Message, UserSubscriptions
 from parser.models import TaskExecutor, Task, ExecutorsAndTasksId
 
-
 request = Request(
     connect_timeout=0.5,
     read_timeout=1.0,
@@ -35,6 +34,7 @@ def log_errors(f):
             error_message = f'Произошла ошибка: {e}'
             print(error_message)
             raise e
+
     return inner
 
 
