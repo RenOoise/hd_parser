@@ -27,22 +27,6 @@ bot = Bot(
 )
 
 
-def send_task_to_subs(task_id):
-    task = Task.objects.get(external_id=int(task_id))
-    executors = list()
-    for tasks in ExecutorsAndTasksId.objects.filter(task_id=task):
-        for task_item in tasks:
-            executors.append(task_item)
-
-    profiles = list()
-    for executor in executors:
-        for profile in UserSubscriptions.objects.filter(executor_id=executor):
-            profiles.append(profile.external_id)
-
-    for profile in profiles:
-        bot.send_message(chat_id=profile, text=f"Новая зявка от {task.task_creator_name}: {task.task_name}")
-
-
 def log_errors(f):
     def inner(*args, **kwargs):
         try:
@@ -55,7 +39,7 @@ def log_errors(f):
 
 
 '''
-Генератор кнопок исполнитеелй
+Генератор кнопок исполнителей
 '''
 
 
@@ -153,7 +137,7 @@ def do_help(update: Update, context: CallbackContext):
     )
     if Profile.objects.filter(external_id=chat_id).exists():
         if Profile.objects.get(external_id=chat_id).is_registered:
-            update.message.reply_text("Список комманд: \n"
+            update.message.reply_text("Список команд: \n"
                                       "/start - начало работы \n"
                                       "/login - ввести пароль для регистрации под определенным пользователем \n"
                                       "/logout - сбросить текущую авторизацию \n"
@@ -215,7 +199,7 @@ def do_subscribe(update: Update, context: CallbackContext):
             for each in TaskExecutor.objects.all():
                 button_list.append(InlineKeyboardButton(each.fullname, callback_data=each.id))
             reply_markup = InlineKeyboardMarkup(
-                build_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and mutliple rows
+                build_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
             update.message.reply_text(
                 text="В БД есть несколько исполнителей.\nВыбери на кого нужно тебя подписать:",
                 reply_markup=reply_markup)
@@ -236,8 +220,8 @@ def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
 
     selected_executor = TaskExecutor.objects.get(id=data)
 
-    subscripted_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
-    if subscripted_to:
+    subscribed_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
+    if subscribed_to:
         update.effective_message.edit_text(text=f"Ты уже подписан на исполнителя {selected_executor.fullname}")
     else:
         subscribe_to = UserSubscriptions(
@@ -252,19 +236,19 @@ class Command(BaseCommand):
     help = 'Телеграм-бот для получения новых заявок из ХД'
 
     def handle(self, *args, **options):
-        request = Request(
+        request_ = Request(
             connect_timeout=0.5,
             read_timeout=1.0,
             con_pool_size=12,
         )
-        bot = Bot(
-            request=request,
+        bot_ = Bot(
+            request=request_,
             token=settings.BOT_TOKEN
         )
         print('Бот запущен!')
         # обработчики
         updater = Updater(
-            bot=bot,
+            bot=bot_,
             workers=8,
 
         )

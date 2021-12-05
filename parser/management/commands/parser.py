@@ -44,7 +44,7 @@ def send_task_to_subs(task_id):
 
     for profile in profiles:
         t_u = Profile.objects.get(id=profile)
-        bot.send_message(chat_id=t_u.external_id, text=f"Новая зявка от {task.task_creator_name}: {task.task_name}")
+        bot.send_message(chat_id=t_u.external_id, text=f"Новая заявка от {task.task_creator_name}:\n {task.task_name}")
 
 
 def parse():
@@ -105,7 +105,7 @@ def delete_old_job_executions(max_age=604_800):
 
 
 class Command(BaseCommand):
-    help = 'Приложение парсинга страниц ХелпДеска'
+    help = 'Приложение парсинга страниц IntraService'
 
     def handle(self, *args, **options):
         scheduler = BlockingScheduler(timezone=settings.TIME_ZONE)
