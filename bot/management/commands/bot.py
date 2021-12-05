@@ -139,7 +139,7 @@ def do_help(update: Update, context: CallbackContext):
         if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text("Список команд: \n"
                                       "/start - начало работы \n"
-                                      "/login - ввести пароль для регистрации под определенным пользователем \n"
+                                      "/login - ввести пароль для доступа к боту \n"
                                       "/logout - сбросить текущую авторизацию \n"
                                       "/subscribe - подписаться на исполнителей\n"
                                       "/stop - не присылать уведомления \n"
