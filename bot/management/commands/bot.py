@@ -128,19 +128,22 @@ def do_login(update: Update, context: CallbackContext):
 @log_errors
 def do_help(update: Update, context: CallbackContext):
     chat_id = update.message.chat_id
+
     p, _ = Profile.objects.get_or_create(
         external_id=chat_id,
         defaults={
             'name': update.message.from_user.username
         }
     )
-    update.message.reply_text("Список комманд: \n"
-                              "/start - начало работы \n"
-                              "/login - ввести пароль для регистрации под определенным пользователем \n"
-                              "/logout - сбросить текущую авторизацию \n"
-                              "/subscribe - подписаться на исполнителей"
-                              "/stop - не присылать уведомления \n"
-                              )
+    if Profile.objects.filter(external_id=chat_id).exists():
+        if Profile.objects.get().is_registered:
+            update.message.reply_text("Список комманд: \n"
+                                      "/start - начало работы \n"
+                                      "/login - ввести пароль для регистрации под определенным пользователем \n"
+                                      "/logout - сбросить текущую авторизацию \n"
+                                      "/subscribe - подписаться на исполнителей"
+                                      "/stop - не присылать уведомления \n"
+                                      )
 
 
 @log_errors
@@ -202,6 +205,11 @@ def do_subscribe(update: Update, context: CallbackContext):
                 reply_markup=reply_markup)
 
 
+'''
+Обработчик событий с клавиатур
+'''
+
+
 @log_errors
 def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
     query = update.callback_query
@@ -212,8 +220,10 @@ def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
 
     selected_executor = TaskExecutor.objects.get(id=data)
 
-    subscripted_to = UserSubscriptions.objects.filter(profile_id=chat_id, executor_id=data).exists()
+    subscripted_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
+    print(subscripted_to)
     if subscripted_to:
+        bot.send_message(chat_id=chat_id, text="Уже подписан на этого исполнителя")
         print('Уже подписан на этого исполнителя')
     else:
         subscribe_to = UserSubscriptions(
