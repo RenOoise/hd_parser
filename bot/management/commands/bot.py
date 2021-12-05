@@ -27,6 +27,22 @@ bot = Bot(
 )
 
 
+def send_task_to_subs(task_id):
+    task = Task.objects.get(external_id=int(task_id))
+    executors = list()
+    for tasks in ExecutorsAndTasksId.objects.filter(task_id=task):
+        for task_item in tasks:
+            executors.append(task_item)
+
+    profiles = list()
+    for executor in executors:
+        for profile in UserSubscriptions.objects.filter(executor_id=executor):
+            profiles.append(profile.external_id)
+
+    for profile in profiles:
+        bot.send_message(chat_id=profile, text=f"Новая зявка от {task.task_creator_name}: {task.task_name}")
+
+
 def log_errors(f):
     def inner(*args, **kwargs):
         try:
@@ -66,11 +82,11 @@ def do_start(update: Update, context: CallbackContext):
         username = update.message.from_user.username
 
     if Profile.objects.filter(external_id=chat_id).exists():
-        if Profile.objects.get().is_registered:
+        if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text(f"Привет, {username}! Я бот, который будет присылать тебе заявки из ХД "
                                       "по мере их поступления.\n"
                                       "Сбор заявок с веб-интерфейса выполняется каждые 5 минут, так что могут "
-                                      "быть небольшие задержки"
+                                      "быть небольшие задержки\n"
                                       "Для списка команд  пиши /help"
                                       )
         else:
@@ -103,7 +119,7 @@ def do_login(update: Update, context: CallbackContext):
         username = update.message.from_user.username
 
     if Profile.objects.filter(external_id=chat_id).exists():
-        if Profile.objects.get().is_registered:
+        if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text(f"{username}! Ты уже зарегистрирован. Если хочешь подписаться на уведомления "
                                       "для какого-то определенного исполнителя, воспользуйся командой /subscribe\n"
                                       "Для списка команд  пиши /help"
@@ -136,12 +152,12 @@ def do_help(update: Update, context: CallbackContext):
         }
     )
     if Profile.objects.filter(external_id=chat_id).exists():
-        if Profile.objects.get().is_registered:
+        if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text("Список комманд: \n"
                                       "/start - начало работы \n"
                                       "/login - ввести пароль для регистрации под определенным пользователем \n"
                                       "/logout - сбросить текущую авторизацию \n"
-                                      "/subscribe - подписаться на исполнителей"
+                                      "/subscribe - подписаться на исполнителей\n"
                                       "/stop - не присылать уведомления \n"
                                       )
 
@@ -170,7 +186,7 @@ def do_register(update: Update, context: CallbackContext):
         username = update.message.from_user.username
 
     if Profile.objects.filter(external_id=chat_id).exists():
-        if Profile.objects.get().is_registered:
+        if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text('Команда не распознана.\n'
                                       'Если хочешь пообщаться, то это не ко мне.')
         else:
@@ -193,7 +209,7 @@ def do_subscribe(update: Update, context: CallbackContext):
         username = update.message.from_user.username
 
     if Profile.objects.filter(external_id=chat_id).exists():
-        if Profile.objects.get().is_registered:
+        if Profile.objects.get(external_id=chat_id).is_registered:
             list_of_executors = list()
             button_list = []
             for each in TaskExecutor.objects.all():

@@ -12,11 +12,41 @@ from django_apscheduler.models import DjangoJobExecution
 from django_apscheduler import util
 
 from parser.models import Task, TaskExecutor, ExecutorsAndTasksId
+from bot.models import UserSubscriptions, Profile
 import logging
+
+from telegram import Bot
+from telegram.utils.request import Request
 
 
 logger = logging.getLogger(__name__)
 load_dotenv()
+request = Request(
+    connect_timeout=0.5,
+    read_timeout=1.0,
+)
+bot = Bot(
+    request=request,
+    token=settings.BOT_TOKEN
+)
+
+
+def send_task_to_subs(task_id):
+    task = Task.objects.get(external_id=int(task_id))
+    print(task)
+    print(ExecutorsAndTasksId.objects.filter(task_id=task))
+    executors = list()
+    for tasks in ExecutorsAndTasksId.objects.filter(task_id=task):
+        executors.append(tasks.executor_id)
+
+    profiles = list()
+    for executor in executors:
+        for profile in UserSubscriptions.objects.filter(executor_id=executor):
+            profiles.append(profile.profile_id.id)
+
+    for profile in profiles:
+        t_u = Profile.objects.get(id=profile)
+        bot.send_message(chat_id=t_u.external_id, text=f"Новая зявка от {task.task_creator_name}: {task.task_name}")
 
 
 def parse():
@@ -36,7 +66,6 @@ def parse():
 
     for task in data:
         if len(task) != 0:
-            print(task)
             if not Task.objects.filter(external_id=int(task[0])).exists():
                 # добавляем заявку в таблицу заявок
                 new_tasks = Task(
@@ -56,8 +85,7 @@ def parse():
                         )
                         add_executor.save()
                     else:
-                        print('DEBUG: Исполнитель уже существует в базе')
-
+                        pass
                     # связываем каждую заявку с исполнителями
                     executors_and_tasks_id = ExecutorsAndTasksId(
                         task_id=Task.objects.get(external_id=task[0]),
@@ -65,8 +93,10 @@ def parse():
                     )
                     executors_and_tasks_id.save()
 
+                send_task_to_subs(int(task[0]))
+
             else:
-                print("DEBUG: Заявка уже существует в базе")
+                pass
         else:
             print('DEBUG: found empty list')
 
@@ -85,7 +115,7 @@ class Command(BaseCommand):
 
         scheduler.add_job(
             parse,
-            trigger=CronTrigger(minute="*/2"),  # Каждые 2 минуты
+            trigger=CronTrigger(second="*/30"),  # Каждые 2 минуты
             id="parse",
             max_instances=1,
             replace_existing=True,
