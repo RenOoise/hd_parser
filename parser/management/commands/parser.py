@@ -33,8 +33,6 @@ bot = Bot(
 
 def send_task_to_subs(task_id):
     task = Task.objects.get(external_id=int(task_id))
-    print(task)
-    print(ExecutorsAndTasksId.objects.filter(task_id=task))
     executors = list()
     for tasks in ExecutorsAndTasksId.objects.filter(task_id=task):
         executors.append(tasks.executor_id)
@@ -98,7 +96,7 @@ def parse():
             else:
                 pass
         else:
-            print('DEBUG: found empty list')
+            logger.debug("Нашелся пустой список")
 
 
 @util.close_old_connections
