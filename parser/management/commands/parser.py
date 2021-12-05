@@ -1,13 +1,21 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
-
+import os
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-import os
 from requests import Session
 
-from parser.models import Task, TaskExecutor, ExecutorsAndTasksId
+from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.models import DjangoJobExecution
+from django_apscheduler import util
 
+from parser.models import Task, TaskExecutor, ExecutorsAndTasksId
+import logging
+
+
+logger = logging.getLogger(__name__)
 load_dotenv()
 
 
@@ -63,8 +71,31 @@ def parse():
             print('DEBUG: found empty list')
 
 
+@util.close_old_connections
+def delete_old_job_executions(max_age=604_800):
+    DjangoJobExecution.objects.delete_old_job_executions(max_age)
+
+
 class Command(BaseCommand):
     help = 'Приложение парсинга страниц ХелпДеска'
 
     def handle(self, *args, **options):
-        parse()
+        scheduler = BlockingScheduler(timezone=settings.TIME_ZONE)
+        scheduler.add_jobstore(DjangoJobStore(), "default")
+
+        scheduler.add_job(
+            parse,
+            trigger=CronTrigger(minute="*/2"),  # Каждые 2 минуты
+            id="parse",
+            max_instances=1,
+            replace_existing=True,
+        )
+        logger.info("Добавлено задание 'parse'.")
+
+        try:
+            logger.info("Запускаю планировщик...")
+            scheduler.start()
+        except KeyboardInterrupt:
+            logger.info("Останавливаю планировщик...")
+            scheduler.shutdown()
+            logger.info("Планировщик успешно остановлен!")
