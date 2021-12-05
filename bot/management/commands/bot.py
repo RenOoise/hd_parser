@@ -221,18 +221,15 @@ def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
     selected_executor = TaskExecutor.objects.get(id=data)
 
     subscripted_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
-    print(subscripted_to)
     if subscripted_to:
-        bot.send_message(chat_id=chat_id, text="Уже подписан на этого исполнителя")
-        print('Уже подписан на этого исполнителя')
+        update.effective_message.edit_text(text=f"Ты уже подписан на исполнителя {selected_executor.fullname}")
     else:
         subscribe_to = UserSubscriptions(
             profile_id=p,
             executor_id=selected_executor,
         )
-
         subscribe_to.save()
-        bot.send_message(chat_id=chat_id, text=f"Подписал тебя на заявки для {selected_executor.fullname}")
+        update.effective_message.edit_text(text=f"Подписал тебя на заявки для {selected_executor.fullname}")
 
 
 class Command(BaseCommand):
