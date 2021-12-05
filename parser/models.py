@@ -82,4 +82,3 @@ class ExecutorsAndTasksId(models.Model):
     class Meta:
         verbose_name = 'Заявка и её исполнитель'
         verbose_name_plural = 'Заявки и их исполнители'
-
