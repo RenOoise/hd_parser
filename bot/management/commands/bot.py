@@ -13,7 +13,18 @@ from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Handler
-from bot.models import Profile, Message
+from bot.models import Profile, Message, UserSubscriptions
+from parser.models import TaskExecutor, Task, ExecutorsAndTasksId
+
+
+request = Request(
+    connect_timeout=0.5,
+    read_timeout=1.0,
+)
+bot = Bot(
+    request=request,
+    token=settings.BOT_TOKEN
+)
 
 
 def log_errors(f):
@@ -25,6 +36,20 @@ def log_errors(f):
             print(error_message)
             raise e
     return inner
+
+
+'''
+Генератор кнопок исполнитеелй
+'''
+
+
+def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
 
 
 """
@@ -113,6 +138,7 @@ def do_help(update: Update, context: CallbackContext):
                               "/start - начало работы \n"
                               "/login - ввести пароль для регистрации под определенным пользователем \n"
                               "/logout - сбросить текущую авторизацию \n"
+                              "/subscribe - подписаться на исполнителей"
                               "/stop - не присылать уведомления \n"
                               )
 
@@ -155,6 +181,50 @@ def do_register(update: Update, context: CallbackContext):
                                           'Просто напиши /subscribe и выбери исполнителя.')
 
 
+@log_errors
+def do_subscribe(update: Update, context: CallbackContext):
+    chat_id = update.message.chat_id
+    if update.message.from_user.username is None:
+        username = 'NoName'
+    else:
+        username = update.message.from_user.username
+
+    if Profile.objects.filter(external_id=chat_id).exists():
+        if Profile.objects.get().is_registered:
+            list_of_executors = list()
+            button_list = []
+            for each in TaskExecutor.objects.all():
+                button_list.append(InlineKeyboardButton(each.fullname, callback_data=each.id))
+            reply_markup = InlineKeyboardMarkup(
+                build_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and mutliple rows
+            update.message.reply_text(
+                text="В БД есть несколько исполнителей.\nВыбери на кого нужно тебя подписать:",
+                reply_markup=reply_markup)
+
+
+@log_errors
+def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
+    query = update.callback_query
+    data = query.data
+    chat_id = update.effective_message.chat_id
+
+    p = Profile.objects.get(external_id=chat_id)
+
+    selected_executor = TaskExecutor.objects.get(id=data)
+
+    subscripted_to = UserSubscriptions.objects.filter(profile_id=chat_id, executor_id=data).exists()
+    if subscripted_to:
+        print('Уже подписан на этого исполнителя')
+    else:
+        subscribe_to = UserSubscriptions(
+            profile_id=p,
+            executor_id=selected_executor,
+        )
+
+        subscribe_to.save()
+        bot.send_message(chat_id=chat_id, text=f"Подписал тебя на заявки для {selected_executor.fullname}")
+
+
 class Command(BaseCommand):
     help = 'Телеграм-бот для получения новых заявок из ХД'
 
@@ -184,12 +254,21 @@ class Command(BaseCommand):
         help_handler = CommandHandler('help', do_help)
         updater.dispatcher.add_handler(help_handler)
 
+        # обработчик команды /login
         login_handler = CommandHandler('login', do_login)
         updater.dispatcher.add_handler(login_handler)
+
+        # обработчик команды /subscribe
+        subscribe_handler = CommandHandler('subscribe', do_subscribe)
+        updater.dispatcher.add_handler(subscribe_handler)
 
         # Обработчик всех сообщений
         message_handler = MessageHandler(Filters.text, do_register)
         updater.dispatcher.add_handler(message_handler)
+
+        # Обработчик клавиатур
+        buttons_handler = CallbackQueryHandler(callback=keyboard_callback_handler, pass_chat_data=True)
+        updater.dispatcher.add_handler(buttons_handler)
 
         # Запустить бесконечную обработку входящих сообщений
         updater.start_polling()
