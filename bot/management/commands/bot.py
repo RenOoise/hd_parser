@@ -139,9 +139,10 @@ def do_help(update: Update, context: CallbackContext):
         if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text("Список команд: \n"
                                       "/start - начало работы \n"
-                                      "/login - ввести пароль для доступа к боту \n"
+                                      "/login - ввести пароль для доступа к боту\n"
                                       "/logout - сбросить текущую авторизацию \n"
                                       "/subscribe - подписаться на исполнителей\n"
+                                      "/unsubscribe - отписаться от исполнителей\n"
                                       "/stop - не присылать уведомления \n"
                                       )
 
@@ -197,12 +198,34 @@ def do_subscribe(update: Update, context: CallbackContext):
             list_of_executors = list()
             button_list = []
             for each in TaskExecutor.objects.all():
-                button_list.append(InlineKeyboardButton(each.fullname, callback_data=each.id))
+                button_list.append(InlineKeyboardButton(each.fullname, callback_data=f'subscribe:{each.id}'))
             reply_markup = InlineKeyboardMarkup(
-                build_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+                build_menu(button_list, n_cols=1))
             update.message.reply_text(
                 text="В БД есть несколько исполнителей.\nВыбери на кого нужно тебя подписать:",
                 reply_markup=reply_markup)
+
+
+@log_errors
+def do_unsubscribe(update: Update, context: CallbackContext):
+    chat_id = update.message.chat_id
+
+    if Profile.objects.filter(external_id=chat_id).exists():
+        if Profile.objects.get(external_id=chat_id).is_registered:
+            button_list = list()
+            for each in UserSubscriptions.objects.filter(profile_id=Profile.objects.get(external_id=chat_id)):
+                print(each)
+                executor_profile = TaskExecutor.objects.get(fullname=each.executor_id)
+                button_list.append(InlineKeyboardButton(
+                    executor_profile.fullname,
+                    callback_data=f'unsubscribe:{executor_profile.id}'),
+                )
+            reply_markup = InlineKeyboardMarkup(
+                build_menu(button_list, n_cols=1))
+            update.message.reply_text(
+                text="Выбери от кого тебя отписать:",
+                reply_markup=reply_markup,
+            )
 
 
 '''
@@ -213,23 +236,32 @@ def do_subscribe(update: Update, context: CallbackContext):
 @log_errors
 def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
     query = update.callback_query
-    data = query.data
+    data = query.data.split(":")
     chat_id = update.effective_message.chat_id
-
     p = Profile.objects.get(external_id=chat_id)
+    if data[0] == 'subscribe':
+        selected_executor = TaskExecutor.objects.get(id=int(data[1]))
 
-    selected_executor = TaskExecutor.objects.get(id=data)
+        subscribed_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
+        if subscribed_to:
+            update.effective_message.edit_text(text=f"Ты уже подписан на исполнителя {selected_executor.fullname}")
+        else:
+            subscribe_to = UserSubscriptions(
+                profile_id=p,
+                executor_id=selected_executor,
+            )
+            subscribe_to.save()
+            update.effective_message.edit_text(text=f"Подписал тебя на заявки для {selected_executor.fullname}")
+    elif data[0] == 'unsubscribe':
+        selected_executor = TaskExecutor.objects.get(id=int(data[1]))
 
-    subscribed_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).exists()
-    if subscribed_to:
-        update.effective_message.edit_text(text=f"Ты уже подписан на исполнителя {selected_executor.fullname}")
-    else:
-        subscribe_to = UserSubscriptions(
-            profile_id=p,
-            executor_id=selected_executor,
-        )
-        subscribe_to.save()
-        update.effective_message.edit_text(text=f"Подписал тебя на заявки для {selected_executor.fullname}")
+        subscribed_to = UserSubscriptions.objects.filter(profile_id=p, executor_id=selected_executor).delete()
+        if subscribed_to:
+            update.effective_message.edit_text(text=f"Отписал тебя от {selected_executor.fullname}")
+        else:
+
+            update.effective_message.edit_text(text=f"Ты не подписан на {selected_executor.fullname}, "
+                                                    f"это какая-то ошибка.")
 
 
 class Command(BaseCommand):
@@ -268,6 +300,12 @@ class Command(BaseCommand):
         # обработчик команды /subscribe
         subscribe_handler = CommandHandler('subscribe', do_subscribe)
         updater.dispatcher.add_handler(subscribe_handler)
+
+
+        # обработчик команды /unsubscribe
+        unsubscribe_handler = CommandHandler('unsubscribe', do_unsubscribe)
+        updater.dispatcher.add_handler(unsubscribe_handler)
+
 
         # Обработчик всех сообщений
         message_handler = MessageHandler(Filters.text, do_register)
