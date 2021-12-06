@@ -143,7 +143,7 @@ def do_help(update: Update, context: CallbackContext):
                                       "/logout - сбросить текущую авторизацию \n"
                                       "/subscribe - подписаться на исполнителей\n"
                                       "/unsubscribe - отписаться от исполнителей\n"
-                                      "/stop - не присылать уведомления \n"
+                                      "/help - это меню"
                                       )
 
 
@@ -262,6 +262,8 @@ def keyboard_callback_handler(update: Update, chat_data=None, **kwargs):
 
             update.effective_message.edit_text(text=f"Ты не подписан на {selected_executor.fullname}, "
                                                     f"это какая-то ошибка.")
+    elif data[0] == 'show_descriprion':
+        pass
 
 
 class Command(BaseCommand):
