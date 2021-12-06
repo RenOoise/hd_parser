@@ -43,7 +43,8 @@ def send_task_to_subs(task_id):
 
     for profile in profiles:
         t_u = Profile.objects.get(id=profile)
-        bot.send_message(chat_id=t_u.external_id, text=f"Новая заявка от {task.task_creator_name}:\n {task.task_name}")
+        bot.send_message(chat_id=t_u.external_id, text=f"Новая заявка от {task.task_creator_name}:\n"
+                                                       f"{task.task_name}")
 
 
 def parse():
