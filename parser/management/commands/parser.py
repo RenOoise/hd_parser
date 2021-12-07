@@ -63,6 +63,7 @@ def parse():
         data.append([ele for ele in cols if ele])  # Get rid of empty values
 
     for task in data:
+        print(task)
         if len(task) != 0:
             if not Task.objects.filter(external_id=int(task[0])).exists():
                 # добавляем заявку в таблицу заявок
@@ -71,7 +72,8 @@ def parse():
                     task_name=task[1],
                     # task_status=0 # пока не парсится
                     task_creator_name=task[2],
-                    task_changed=task[4],
+                    task_changed=task[5],
+                    task_category=task[4],
                 )
                 new_tasks.save()
                 # проходимся итерацией по исполнителям из полученной строки
