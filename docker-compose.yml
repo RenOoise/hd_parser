@@ -1,0 +1,52 @@
+version: '3.3'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: gunicorn intraservice_parser.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/home/hd_parser/app/staticfiles
+    expose:
+      - 8000
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+  db:
+    image: postgres:12.9-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env.db
+  parser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python /home/hd_parser/app/manage.py parser
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py bot
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/hd_parser/app/staticfiles
+    ports:
+      - "1337:80"
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_volume:

@@ -165,11 +165,6 @@ def do_register(update: Update, context: CallbackContext):
 
     m.save()
 
-    if update.message.from_user.username is None:
-        username = 'NoName'
-    else:
-        username = update.message.from_user.username
-
     if Profile.objects.filter(external_id=chat_id).exists():
         if Profile.objects.get(external_id=chat_id).is_registered:
             update.message.reply_text('Команда не распознана.\n'
@@ -188,14 +183,8 @@ def do_register(update: Update, context: CallbackContext):
 @log_errors
 def do_subscribe(update: Update, context: CallbackContext):
     chat_id = update.message.chat_id
-    if update.message.from_user.username is None:
-        username = 'NoName'
-    else:
-        username = update.message.from_user.username
-
     if Profile.objects.filter(external_id=chat_id).exists():
         if Profile.objects.get(external_id=chat_id).is_registered:
-            list_of_executors = list()
             button_list = []
             for each in TaskExecutor.objects.all():
                 button_list.append(InlineKeyboardButton(each.fullname, callback_data=f'subscribe:{each.id}'))
@@ -303,11 +292,9 @@ class Command(BaseCommand):
         subscribe_handler = CommandHandler('subscribe', do_subscribe)
         updater.dispatcher.add_handler(subscribe_handler)
 
-
         # обработчик команды /unsubscribe
         unsubscribe_handler = CommandHandler('unsubscribe', do_unsubscribe)
         updater.dispatcher.add_handler(unsubscribe_handler)
-
 
         # Обработчик всех сообщений
         message_handler = MessageHandler(Filters.text, do_register)
