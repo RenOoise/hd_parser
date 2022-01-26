@@ -14,7 +14,7 @@ LOGIN=пользователь хеплдеска
 
 PASSWORD=пароль хелпдеска
 
-TASK_URL=http://адрес хелпдеска/Task
+TASK_URL=http://"адрес_хелпдеска"/Task
 
 SECRET_KEY=секрет кей джанго
 
